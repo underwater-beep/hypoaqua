@@ -67,19 +67,48 @@ import Layout from '../layouts/Layout.astro';
   .view-section { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 10; }
 
   /* 太极图四板块 */
-  .block-grid { position: relative; width: 400px; height: 400px; display: flex; justify-content: center; align-items: center; margin: 0 auto; border-radius: 50%; overflow: hidden; box-shadow: 0 0 50px rgba(42, 96, 167, 0.15); }
+  .block-grid { 
+    position: relative; 
+    width: 400px; 
+    height: 400px; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    margin: 0 auto; 
+    border-radius: 50%; 
+    overflow: hidden; 
+    box-shadow: 0 0 50px rgba(42, 96, 167, 0.15); 
+  }
   @media (max-width: 768px) { .block-grid { width: 300px; height: 300px; } }
 
-  .glass-block { position: absolute; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.35); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); transition: all 0.4s; opacity: 0; display: flex; justify-content: center; align-items: center; cursor: pointer; text-decoration: none; pointer-events: auto; }
+  /* 扇形基础外观 */
+  .glass-block { 
+    position: absolute; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(255, 255, 255, 0.15); 
+    backdrop-filter: blur(12px); 
+    border: 1px solid rgba(255, 255, 255, 0.3); 
+    transition: background 0.3s, box-shadow 0.3s, opacity 0.4s; 
+    opacity: 0; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    cursor: pointer; 
+    text-decoration: none; 
+    pointer-events: auto; 
+  }
+  
   .leaf-pop { animation: popInLeaf 1s forwards; }
   @keyframes popInLeaf { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
 
-  /* 斜切出扇形 */
-  .shape-tl { clip-path: polygon(0 0, 100% 0, 50% 50%, 0 100%); }
-  .shape-tr { clip-path: polygon(100% 0, 100% 100%, 50% 50%); }
-  .shape-br { clip-path: polygon(100% 100%, 0 100%, 50% 50%); }
-  .shape-bl { clip-path: polygon(0 100%, 0 0, 50% 50%); }
+  /* 标准的上下左右 90 度扇形 */
+  .shape-top { clip-path: polygon(0 0, 100% 0, 50% 50%); }
+  .shape-right { clip-path: polygon(100% 0, 100% 100%, 50% 50%); }
+  .shape-bottom { clip-path: polygon(100% 100%, 0 100%, 50% 50%); }
+  .shape-left { clip-path: polygon(0 100%, 0 0, 50% 50%); }
 
+  /* 内容排版 */
   .block-content { 
     position: relative; 
     z-index: 1; 
@@ -90,19 +119,25 @@ import Layout from '../layouts/Layout.astro';
     color: #1e293b; 
     width: 50%; 
     transition: transform 0.3s;
-    text-shadow: 0 1px 3px rgba(255,255,255,0.8); 
+    text-shadow: 0 1px 3px rgba(255,255,255,0.8);
   }
   
-  /* 把内容推向四个角落，避免在圆心挤成一团 */
-  .shape-tl .block-content { transform: translate(-45%, -45%); }
-  .shape-tr .block-content { transform: translate(45%, -45%); }
-  .shape-br .block-content { transform: translate(45%, 45%); }
-  .shape-bl .block-content { transform: translate(-45%, 45%); }
+  /* 文字向正上、正右、正下、正左边缘推 */
+  .shape-top .block-content { transform: translateY(-100%); }
+  .shape-right .block-content { transform: translateX(100%); }
+  .shape-bottom .block-content { transform: translateY(100%); }
+  .shape-left .block-content { transform: translateX(-100%); }
 
+  /* 图标和文字放大 */
   .block-icon svg { width: 36px; height: 36px; stroke: #2A60A7; margin-bottom: 0.5rem; }
   .block-title { font-family: "Andada Pro", "LXGW Heart Serif", serif; font-size: 1.6rem; font-weight: 700; margin: 0; color: #2A60A7; letter-spacing: 0.1em; }
-  .glass-block:hover { background: rgba(255, 255, 255, 0.5); box-shadow: inset 0 0 40px rgba(22, 163, 74, 0.2); z-index: 10; }
-
+  
+  /* 👇 悬浮强调光：只亮当前扇形，通过内阴影实现 */
+  .glass-block:hover { 
+    background: rgba(255, 255, 255, 0.4); 
+    box-shadow: inset 0 0 60px rgba(22, 163, 74, 0.3); 
+    z-index: 10; 
+  }
   /* 弹窗 */
   .mega-modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(248, 250, 252, 0.6); backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
   .mega-modal-overlay.active { opacity: 1; pointer-events: auto; }
@@ -184,7 +219,8 @@ import Layout from '../layouts/Layout.astro';
       const grid = document.getElementById('home-cards');
       const t = I18N[window.currentLang];
       
-      const shapes = ['shape-tl', 'shape-tr', 'shape-br', 'shape-bl'];
+      // 上下左右的类名
+      const shapes = ['shape-top', 'shape-right', 'shape-bottom', 'shape-left'];
       const targets = ['view-literature', 'view-published', 'view-music', 'view-games'];
       const icons = [
         `<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h6"/><path d="M8 11h8"/>`,
