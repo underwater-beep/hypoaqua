@@ -41,6 +41,26 @@ const { title = "Hypoaqua" } = Astro.props;
     .logo-text { font-family: "Andada Pro", serif; font-size: 1rem; font-weight: bold; letter-spacing: 0.2em; color: #2A60A7; cursor: pointer; }
     .copyright-text { font-size: 0.6rem; color: #94a3b8; white-space: nowrap; }
     
+    /* 👇 新增：导航栏中间 PNG 图片的样式 👇 */
+    .nav-center-img {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 10px 0; 
+    }
+    
+    .nav-center-img img {
+      height: 72px; /* 👈 强制把高度拉到 72px（比导航栏还大，产生溢出悬浮感） */
+      max-height: none; /* 👈 移除最大高度限制 */
+      width: auto;  
+      object-fit: contain; 
+      pointer-events: none; 
+    }
+
     .nav-right { display: flex; align-items: center; gap: 1.5rem; font-size: 0.75rem; color: #64748b; }
     .nav-right a { color: #2A60A7; text-decoration: none; font-weight: bold; }
 
@@ -92,6 +112,12 @@ const { title = "Hypoaqua" } = Astro.props;
     @media (max-width: 768px) {
       .top-bar { padding: 0 1rem; }
       .nav-right a { display: none; } 
+      
+      /* 👇 手机端调整图片大小 */
+      .nav-center-img img {
+        max-height: 30px; 
+      }
+
       #floating-music-widget { bottom: 20px; right: 15px; }
       .music-orb { width: 50px; height: 50px; }
       .music-orb svg { width: 24px; height: 24px; }
@@ -106,6 +132,12 @@ const { title = "Hypoaqua" } = Astro.props;
       <div class="logo-text">HYPOAQUA</div>
       <div class="copyright-text" id="copyright-text">© All rights reserved.</div>
     </div>
+    
+    <!-- 导航栏居中 PNG 图片 -->
+    <div class="nav-center-img">
+      <img src="https://f005.backblazeb2.com/file/hypoaqua/title.png" alt="水下哉">
+    </div>
+    
     <div class="nav-right">
       <a href="mailto:underwater@hypoaqua.com">underwater@hypoaqua.com</a>
       <button class="lang-switch" id="lang-btn">EN</button>
