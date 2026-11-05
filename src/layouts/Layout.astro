@@ -12,7 +12,6 @@ const { title = "Hypoaqua" } = Astro.props;
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
   <style is:global>
-    /* ================= 1. 注册 B2 字体 ================= */
     @font-face { font-family: 'Andada Pro'; src: url('https://f005.backblazeb2.com/file/hypoaqua/AndadaPro-Regular.otf') format('opentype'); font-display: swap; }
     @font-face { font-family: 'LXGW Heart Serif'; src: url('https://f005.backblazeb2.com/file/hypoaqua/LXGWHeartSerifCHS-2.ttf') format('truetype'); font-display: swap; }
 
@@ -26,73 +25,42 @@ const { title = "Hypoaqua" } = Astro.props;
       background-color: #f8fafc;
     }
 
-    /* ================= 2. 开场视频 ================= */
+    /* 开场视频 */
     #intro-screen { position: fixed; inset: 0; z-index: 9999; background: #000; display: flex; justify-content: center; align-items: center; pointer-events: none; }
     #intro-video { width: 100vw; height: 100vh; object-fit: cover; }
 
-    /* ================= 3. 极简顶部导航 ================= */
-    .top-bar { 
-      position: fixed; top: 0; width: 100%; height: 60px; z-index: 50; 
-      display: flex; justify-content: space-between; align-items: center; 
-      padding: 0 2rem; 
-      background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); 
-      border-bottom: 1px solid rgba(42, 96, 167, 0.1); 
-      opacity: 0; transition: opacity 0.5s ease-out;
-    }
+    /* 顶部导航 */
+    .top-bar { position: fixed; top: 0; width: 100%; height: 60px; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(42, 96, 167, 0.1); opacity: 0; transition: opacity 0.5s ease-out; }
     .top-bar.show { opacity: 1; }
-
     .nav-left { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.1rem; }
     .logo-text { font-family: "Andada Pro", serif; font-size: 1rem; font-weight: bold; letter-spacing: 0.2em; color: #2A60A7; cursor: pointer; }
     .copyright-text { font-size: 0.6rem; color: #94a3b8; white-space: nowrap; }
-    
     .nav-right { display: flex; align-items: center; gap: 1.5rem; font-size: 0.75rem; color: #64748b; }
     .nav-right a { color: #2A60A7; text-decoration: none; font-weight: bold; }
-
-    .lang-switch {
-      background: rgba(42, 96, 167, 0.1); border: 1px solid rgba(42, 96, 167, 0.2);
-      color: #2A60A7; padding: 0.3rem 0.8rem; border-radius: 20px;
-      font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.75rem;
-    }
+    .lang-switch { background: rgba(42, 96, 167, 0.1); border: 1px solid rgba(42, 96, 167, 0.2); color: #2A60A7; padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.75rem; }
     .lang-switch:hover { background: #2A60A7; color: #fff; }
 
-    /* ================= 4. 全局悬浮音乐球 ================= */
+    /* 悬浮音乐球 */
     #floating-music-widget {
-      position: fixed; bottom: 30px; right: 30px; z-index: 500;
+      position: fixed; bottom: 30px; right: 30px; z-index: 99999;
       display: flex; flex-direction: column; align-items: center; gap: 10px;
       opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+      cursor: grab; touch-action: none;
     }
+    #floating-music-widget:active { cursor: grabbing; }
     #floating-music-widget.show { opacity: 1; pointer-events: auto; }
 
-    .music-orb {
-      width: 60px; height: 60px; border-radius: 50%;
-      background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(12px);
-      border: 2px solid rgba(255, 255, 255, 0.8); cursor: pointer;
-      display: flex; justify-content: center; align-items: center;
-      box-shadow: inset 0 0 20px rgba(42, 96, 167, 0.2), inset 0 0 20px rgba(22, 163, 74, 0.2), 0 10px 20px rgba(0,0,0,0.1);
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      position: relative; overflow: hidden;
-    }
+    .music-orb { width: 60px; height: 60px; border-radius: 50%; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); border: 2px solid rgba(255, 255, 255, 0.8); cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; }
     .music-orb:hover { transform: scale(1.1); box-shadow: 0 0 30px rgba(22, 163, 74, 0.4); }
-    .music-orb::before {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(42, 96, 167, 0.8) 50%, rgba(22, 163, 74, 0.8) 50%);
-      opacity: 0.3; z-index: 0;
-    }
+    .music-orb::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(42, 96, 167, 0.8) 50%, rgba(22, 163, 74, 0.8) 50%); opacity: 0.3; z-index: 0; }
     .music-orb svg { width: 30px; height: 30px; z-index: 1; color: #fff; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
 
-    .music-marquee {
-      width: 120px; text-align: center; font-size: 0.75rem; color: #2A60A7; font-weight: 600;
-      background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(4px);
-      padding: 4px 8px; border-radius: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
+    .music-marquee { width: 120px; text-align: center; font-size: 0.75rem; color: #2A60A7; font-weight: 600; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; pointer-events: auto; transition: 0.2s; }
+    .music-marquee:hover { background: #fff; color: #16A34A; }
 
-    /* ================= 5. 移动端自适应 ================= */
     @media (max-width: 768px) {
       .top-bar { padding: 0 1rem; }
-      .nav-right a { display: none; } /* 隐藏邮箱 */
-      .logo-text { font-size: 0.9rem; }
-      
+      .nav-right a { display: none; } 
       #floating-music-widget { bottom: 20px; right: 15px; }
       .music-orb { width: 50px; height: 50px; }
       .music-orb svg { width: 24px; height: 24px; }
@@ -101,38 +69,28 @@ const { title = "Hypoaqua" } = Astro.props;
   </style>
 </head>
 <body>
-  <!-- 开场视频 -->
   <div id="intro-screen">
-    <video id="intro-video" autoplay muted playsinline>
-      <source src="https://f005.backblazeb2.com/file/hypoaqua/start.mp4" type="video/mp4" />
-    </video>
+    <video id="intro-video" autoplay muted playsinline><source src="https://f005.backblazeb2.com/file/hypoaqua/start.mp4" type="video/mp4" /></video>
   </div>
 
-  <!-- 顶部导航（极简版） -->
   <header class="top-bar" id="main-nav">
     <div class="nav-left">
       <div class="logo-text">HYPOAQUA</div>
       <div class="copyright-text" id="copyright-text">© All rights reserved.</div>
     </div>
-    
     <div class="nav-right">
       <a href="mailto:underwater@hypoaqua.com">underwater@hypoaqua.com</a>
       <button class="lang-switch" id="lang-btn">EN</button>
     </div>
   </header>
 
-  <!-- 全局悬浮音乐球 -->
+  <!-- 悬浮球 -->
   <div id="floating-music-widget">
-    <div class="music-orb" id="orb-play-btn" title="播放/暂停">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" id="orb-icon-path"/></svg>
-    </div>
-    <div class="music-marquee" id="orb-song-name">等待播放</div>
+    <div class="music-orb" id="orb-play-btn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" id="orb-icon-path"/></svg></div>
+    <div class="music-marquee" id="orb-song-name" title="打开播放列表">等待播放</div>
   </div>
 
-  <!-- 全局音频标签 -->
   <audio id="global-audio"></audio>
-
-  <!-- 页面内容插槽 -->
   <slot />
 
   <script>
@@ -144,61 +102,59 @@ const { title = "Hypoaqua" } = Astro.props;
     if (introVideo) {
       introVideo.playbackRate = 0.6; 
       introVideo.addEventListener('ended', () => {
-        introScreen.remove();
-        topBar.classList.add('show');
+        introScreen.remove(); topBar.classList.add('show');
         document.dispatchEvent(new Event('videoEnded'));
       });
     }
 
-    // --- 2. 语言切换逻辑 ---
-    window.currentLang = 'zh'; 
-    window.updateLanguage = () => {};
-
+    // --- 2. 语言切换 ---
+    window.currentLang = 'zh'; window.updateLanguage = () => {};
     document.getElementById('lang-btn').addEventListener('click', (e) => {
       window.currentLang = window.currentLang === 'zh' ? 'en' : 'zh';
       e.target.textContent = window.currentLang === 'zh' ? 'EN' : '中';
-      
       document.getElementById('copyright-text').textContent = window.currentLang === 'zh' ? '© 保留所有权利' : '© All rights reserved.';
-      
       if (window.updateLanguage) window.updateLanguage();
     });
 
-    // --- 3. 全局音乐悬浮球逻辑 ---
-    document.getElementById('orb-play-btn').addEventListener('click', () => {
-      const audio = document.getElementById('global-audio');
-      const iconPath = document.getElementById('orb-icon-path');
-      
-      // 如果还没选歌，帮用户打开音乐列表
-      if (!audio.src) {
-        if (window.openMusicModal) window.openMusicModal();
-        return;
-      }
+    // --- 3. 音乐播放与拖拽 ---
+    const widget = document.getElementById('floating-music-widget');
+    let isDragging = false, startX, startY, initialLeft, initialTop;
 
-      if (audio.paused) {
-        audio.play();
-        iconPath.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z'); // 暂停图标
-      } else {
-        audio.pause();
-        iconPath.setAttribute('d', 'M8 5v14l11-7z'); // 播放图标
-      }
+    widget.addEventListener('pointerdown', (e) => {
+      if(e.target.closest('.music-marquee')) return;
+      isDragging = false;
+      const rect = widget.getBoundingClientRect();
+      widget.style.bottom = 'auto'; widget.style.right = 'auto';
+      widget.style.left = rect.left + 'px'; widget.style.top = rect.top + 'px';
+      startX = e.clientX; startY = e.clientY; initialLeft = rect.left; initialTop = rect.top;
+      widget.setPointerCapture(e.pointerId);
+    });
+    widget.addEventListener('pointermove', (e) => {
+      if (e.buttons === 0) return;
+      const dx = e.clientX - startX; const dy = e.clientY - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) isDragging = true;
+      if (isDragging) { widget.style.left = initialLeft + dx + 'px'; widget.style.top = initialTop + dy + 'px'; }
+    });
+    widget.addEventListener('pointerup', () => setTimeout(() => { isDragging = false; }, 50));
+
+    document.getElementById('orb-play-btn').addEventListener('click', () => {
+      if (isDragging) return;
+      const audio = document.getElementById('global-audio');
+      if (!audio.src) { if (window.openMusicModal) window.openMusicModal(); return; }
+      if (audio.paused) audio.play(); else audio.pause();
+    });
+    document.getElementById('orb-song-name').addEventListener('click', () => {
+      if (isDragging) return;
+      if (window.openMusicModal) window.openMusicModal();
     });
 
-    // 供 index.astro 更新悬浮球状态
     window.updateMusicWidget = (isPlaying, songName) => {
-      const widget = document.getElementById('floating-music-widget');
-      const iconPath = document.getElementById('orb-icon-path');
-      const marquee = document.getElementById('orb-song-name');
-
-      if (songName) {
-        widget.classList.add('show');
-        marquee.textContent = songName;
-      }
-      
-      if (isPlaying) {
-        iconPath.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z');
-      } else {
-        iconPath.setAttribute('d', 'M8 5v14l11-7z');
-      }
+      const w = document.getElementById('floating-music-widget');
+      const i = document.getElementById('orb-icon-path');
+      const m = document.getElementById('orb-song-name');
+      if (songName) { w.classList.add('show'); m.textContent = songName; }
+      if (isPlaying) i.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z');
+      else i.setAttribute('d', 'M8 5v14l11-7z');
     };
   </script>
 </body>
