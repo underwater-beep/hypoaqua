@@ -1,64 +1,55 @@
 [
   {
     "id": "shuiyueji",
-    "title": "Shuiyueji",
-    "subtitle": "The Legend of Chinese Yue",
+    "title": "The Legend of Chinese Yue",
     "type": "AVG Game",
     "content": "<p>Yue — the original people of southern China, long before there were nations or borders.</p><p>The Legend of Chinese Yue follows a Yue girl, from a Chu schoolroom to rice fields, orange groves, and mountain valleys, through a lifetime of migration and rootedness.</p><p>Three men walk beside her: a Yue orphan raised in the Chu army, a Chu noble orphan taken in by the state, and a Yue youth who crosses mountains with her. Three paths, three fates.</p>"
   },
   {
     "id": "nongrenji",
-    "title": "Nongrenji",
-    "subtitle": "The Legend of Nong Zhigao",
+    "title": "The Legend of Nong Zhigao",
     "type": "AVG Game",
     "content": "<p>Nong Zhigao, a chieftain of Yue descent, built his own kingdom between three powers. He lost.</p><p>The Legend of Nong Zhigao follows three paths he might have taken after his defeat. Three directions, three ways of living. Not every defeat has an ending — some just continue in another form.</p>"
   },
   {
     "id": "muzeji",
-    "title": "Muzeji",
-    "subtitle": "The Legend of Yuzhou",
+    "title": "The Legend of Yuzhou",
     "type": "AVG Game",
     "content": "<p>Yuzhou is a copy of the universe, born from Earth's electromagnetic interference. Every life within it carries a genetic switch controlled by Mercury. When the last humans on Earth discover how to turn it off, a shepherd girl stands at the center of fate.</p><p>The Legend of Yuzhou follows her choice at the edge of the end. Around her are survivors from different nations — some want to save, some want to destroy, some just want to live.</p>"
   },
   {
     "id": "caoxunji",
-    "title": "Caoxunji",
-    "subtitle": "The Legend of Nettle",
+    "title": "The Legend of Nettle",
     "type": "AVG Game",
     "content": "<p>In the Global Village, AI has replaced most work. A car washer, a daughter kept alive by her father's guilt money, a woman caught between four men.</p><p>Nettle: the sting is not a weapon. The sting is skin. Touch it, and you will hurt. Touch it again, and you will understand why it grows in ruins.</p>"
   },
   {
     "id": "guangyuanji",
-    "title": "Guangyuanji",
-    "subtitle": "The Legend of Siberian Plain",
+    "title": "The Legend of Siberian Plain",
     "type": "AVG Game",
     "content": "<p>An alternate history. Where the Siberian steppe meets the forest, three powers converge: Mongols, Jurchens, and Han Chinese. A Mongol girl must choose between three men.</p><p>A Han merchant offers her another way of living. A Jurchen banner soldier offers her survival within the system. A Mongol herdsman offers her the steppe itself.</p><p>Three paths, three belongings. The grassland is being eaten away, and she must choose before it all disappears.</p>"
   },
   {
     "id": "hanmengji",
-    "title": "Hanmengji",
-    "subtitle": "The Legend of Ice Dream",
+    "title": "The Legend of Ice Dream",
     "type": "AVG Game",
     "content": "<p>An alternate history. The Arctic ice, pure snow. Dutch ships reach the Arctic Circle, colliding with the Inuit world for the first time. An Inuit girl must choose between three men.</p><p>A Dutch merchant offers her the outside world. An Inuit hunter offers her the memory of her people. A half-beast offers her the freedom of belonging nowhere.</p><p>Three paths, three fates. The snow never stops falling.</p>"
   },
   {
     "id": "hailiuji",
-    "title": "Hailiuji",
-    "subtitle": "The Legend of the Sea Currents",
+    "title": "The Legend of the Sea Currents",
     "type": "AVG Game",
     "content": "<p>An alternate history. Hawaii, an island half taken by the American military. A fisherman's daughter who can swim, paddle, and sing the old songs.</p><p>An American soldier offers her another way of living. A local companion offers her the island itself. A voyager from a neighboring island offers her a boat to somewhere she has never heard of.</p><p>Three paths, three fates. One of them leads into the deepest dark.</p>"
   },
   {
     "id": "kongyouji",
-    "title": "Kongyouji",
-    "subtitle": "The Legend of Void Travel",
+    "title": "The Legend of Void Travel",
     "type": "AVG Game",
     "content": "<p>An alternate history. An island, drifting on the sea. The people on it belong nowhere, and do not know where they are going.</p><p>An island girl must choose between three men: an Amis man, a mainland Chinese man, and an American man.</p><p>The Amis man offers her land. The mainland man offers her crossing. The American offers her drifting. Three paths, three ways of living.</p>"
   },
   {
     "id": "lanhuaji",
-    "title": "Lanhuaji",
-    "subtitle": "The Legend of Indigo Plant",
+    "title": "The Legend of Indigo Plant",
     "type": "AVG Game",
     "content": "<p>The Hmong are one of the oldest peoples of China. From the Yellow River to the Yangtze, from the Yangtze to the mountains of the southwest, from the southwest to Southeast Asia, from Southeast Asia to America. Every migration was forced. Every migration left someone behind.</p><p>Indigo: the plant that dyes Hmong cloth. Before it blooms, the dye is deepest. After it blooms, it can only be looked at.</p><p>The Legend of Indigo Plant follows three paths of a Hmong girl. Stay in Xiangxi, go to Southeast Asia, go to America. Three paths, three lives.</p>"
   }
