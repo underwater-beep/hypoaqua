@@ -80,11 +80,24 @@ import Layout from '../layouts/Layout.astro';
   .shape-br { clip-path: polygon(100% 100%, 0 100%, 50% 50%); }
   .shape-bl { clip-path: polygon(0 100%, 0 0, 50% 50%); }
 
-  .block-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; color: #1e293b; width: 50%; transition: transform 0.3s; text-shadow: 0 1px 3px rgba(255,255,255,0.8); }
-  .shape-tl .block-content { transform: translate(-20%, -20%); }
-  .shape-tr .block-content { transform: translate(20%, -20%); }
-  .shape-br .block-content { transform: translate(20%, 20%); }
-  .shape-bl .block-content { transform: translate(-20%, 20%); }
+  .block-content { 
+    position: relative; 
+    z-index: 1; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    text-align: center; 
+    color: #1e293b; 
+    width: 50%; 
+    transition: transform 0.3s;
+    text-shadow: 0 1px 3px rgba(255,255,255,0.8); 
+  }
+  
+  /* 把内容推向四个角落，避免在圆心挤成一团 */
+  .shape-tl .block-content { transform: translate(-45%, -45%); }
+  .shape-tr .block-content { transform: translate(45%, -45%); }
+  .shape-br .block-content { transform: translate(45%, 45%); }
+  .shape-bl .block-content { transform: translate(-45%, 45%); }
 
   .block-icon svg { width: 36px; height: 36px; stroke: #2A60A7; margin-bottom: 0.5rem; }
   .block-title { font-family: "Andada Pro", "LXGW Heart Serif", serif; font-size: 1.6rem; font-weight: 700; margin: 0; color: #2A60A7; letter-spacing: 0.1em; }
