@@ -1,73 +1,194 @@
 ---
-// src/layouts/Layout.astro
-const { title = "Hypoaqua" } = Astro.props;
+// src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
 ---
 
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>{title}</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<Layout title="Hypoaqua Works">
+  <main class="app-container">
+    <section class="view-section active" id="view-home">
+      <!-- 4个玻璃长条 -->
+      <div class="block-grid" id="home-cards"></div>
+    </section>
+  </main>
 
-  <style is:global>
-    @font-face { font-family: 'Andada Pro'; src: url('https://f005.backblazeb2.com/file/hypoaqua/AndadaPro-Regular.otf') format('opentype'); font-display: swap; }
-    @font-face { font-family: 'LXGW Heart Serif'; src: url('https://f005.backblazeb2.com/file/hypoaqua/LXGWHeartSerifCHS-2.ttf') format('truetype'); font-display: swap; }
+  <!-- 大弹窗 -->
+  <div id="mega-modal" class="mega-modal-overlay">
+    <div class="mega-modal-content">
+      <button id="close-mega-modal" class="close-mega-btn">×</button>
+      <h2 id="modal-title" class="mega-title"></h2>
+      
+      <div id="mega-list-container" class="shutter-container"></div>
+      
+      <!-- 音乐播放器区 -->
+      <div id="mega-music-player" class="music-player-hidden">
+        <div class="jukebox">
+          <div class="selector-bar">
+            <label for="music-select" id="music-label">选择曲目：</label>
+            <select id="music-select"></select>
+          </div>
+          <div class="jukebox-visual">
+            <!-- 喇叭图标：默认显示有声，点击变为静音(暂停) -->
+            <button id="play-pause-btn" class="speaker-horn">
+              <svg viewBox="0 0 24 24" fill="currentColor" class="horn-icon">
+                <path id="horn-path" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+              </svg>
+            </button>
+            <div class="vinyl-record" id="vinyl"><div class="vinyl-center"></div></div>
+          </div>
+          <div class="jukebox-bottom">
+            <div class="status-row"><span id="current-time">00:00</span><span id="total-time">00:00</span></div>
+            <input type="range" id="progress-bar" value="0" min="0" max="100" step="0.1">
+          </div>
+        </div>
+      </div>
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body { 
-      min-height: 100vh; 
-      font-family: "Andada Pro", "LXGW Heart Serif", "Kaiti SC", system-ui, sans-serif; 
-      color: #1e293b; position: relative; overflow: hidden; 
-      background: url('https://f005.backblazeb2.com/file/hypoaqua/back.jpg') center/cover no-repeat fixed;
-      background-color: #f8fafc;
-    }
+      <!-- 阅读器区 -->
+      <div id="reader-view" class="reader-hidden">
+        <button id="back-to-list" class="back-to-list-btn">← 返回列表</button>
+        <div class="epub-wrapper">
+          <div id="loading" class="loading-overlay"><div class="spinner"></div><p>Loading...</p></div>
+          <div id="viewer"></div>
+          <div class="epub-controls">
+            <button id="prev-btn" class="stamp-btn green">返</button>
+            <div class="right-controls"><button id="next-btn" class="stamp-btn blue">翻</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    /* 开场视频 */
-    #intro-screen { position: fixed; inset: 0; z-index: 9999; background: #000; display: flex; justify-content: center; align-items: center; pointer-events: none; }
-    #intro-video { width: 100vw; height: 100vh; object-fit: cover; }
+  <!-- 独立的详情弹窗 -->
+  <div id="detail-modal" class="mega-modal-overlay" style="z-index: 300; background: rgba(10, 22, 40, 0.7);">
+    <div class="mega-modal-content" style="width: 80vw; max-width: 600px; height: auto; max-height: 80vh; padding: 2.5rem; border-radius: 30px;">
+      <button id="close-detail-modal" class="close-mega-btn">×</button>
+      <h2 id="detail-title" class="mega-title" style="margin-bottom: 1rem; text-align: left;"></h2>
+      <div id="detail-desc" style="color: #475569; line-height: 1.8; overflow-y: auto; max-height: 50vh; padding-right: 10px;"></div>
+      <button id="detail-read-btn" class="read-btn" style="display: none; margin-top: 1.5rem; width: 100%;">开始阅读</button>
+    </div>
+  </div>
+</Layout>
 
-    /* 顶部导航 */
-    .top-bar { position: fixed; top: 0; width: 100%; height: 60px; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 0 2rem; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(42, 96, 167, 0.1); opacity: 0; transition: opacity 0.5s ease-out; }
-    .top-bar.show { opacity: 1; }
-    .nav-left { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.1rem; }
-    .logo-text { font-family: "Andada Pro", serif; font-size: 1rem; font-weight: bold; letter-spacing: 0.2em; color: #2A60A7; cursor: pointer; }
-    .copyright-text { font-size: 0.6rem; color: #94a3b8; white-space: nowrap; }
-    .nav-right { display: flex; align-items: center; gap: 1.5rem; font-size: 0.75rem; color: #64748b; }
-    .nav-right a { color: #2A60A7; text-decoration: none; font-weight: bold; }
-    .lang-switch { background: rgba(42, 96, 167, 0.1); border: 1px solid rgba(42, 96, 167, 0.2); color: #2A60A7; padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.75rem; }
-    .lang-switch:hover { background: #2A60A7; color: #fff; }
+<style is:global>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  .app-container { position: absolute; top: 60px; left: 0; width: 100vw; height: calc(100vh - 60px); overflow: hidden; display: flex; justify-content: center; align-items: center; }
+  .view-section { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 10; }
 
-    /* 悬浮音乐球 */
-    #floating-music-widget {
-      position: fixed; bottom: 30px; right: 30px; z-index: 99999;
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
-      opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
-      cursor: grab; touch-action: none;
-    }
-    #floating-music-widget:active { cursor: grabbing; }
-    #floating-music-widget.show { opacity: 1; pointer-events: auto; }
+  /* ===== 主页四个长条 ===== */
+  .block-grid { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 1.5rem; 
+    width: 90%; 
+    max-width: 600px; 
+    align-items: center;
+  }
 
-    .music-orb { width: 60px; height: 60px; border-radius: 50%; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(12px); border: 2px solid rgba(255, 255, 255, 0.8); cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; }
-    .music-orb:hover { transform: scale(1.1); box-shadow: 0 0 30px rgba(22, 163, 74, 0.4); }
-    .music-orb::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(42, 96, 167, 0.8) 50%, rgba(22, 163, 74, 0.8) 50%); opacity: 0.3; z-index: 0; }
-    .music-orb svg { width: 30px; height: 30px; z-index: 1; color: #fff; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+  .glass-block { 
+    width: 100%; 
+    padding: 1.5rem 2rem; 
+    border-radius: 20px;
+    /* 透明磨损玻璃质感 */
+    background: rgba(255, 255, 255, 0.2); 
+    backdrop-filter: blur(16px); 
+    border: 1px solid rgba(255, 255, 255, 0.5); 
+    box-shadow: 0 10px 30px rgba(42, 96, 167, 0.05);
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    text-decoration: none; 
+    cursor: pointer; 
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* 悬停与点击时的蓝绿光 */
+  .glass-block:hover, .glass-block:active { 
+    background: rgba(255, 255, 255, 0.35); 
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(22, 163, 74, 0.2), inset 0 0 20px rgba(42, 96, 167, 0.1); 
+    border-color: rgba(22, 163, 74, 0.4);
+  }
+  
+  /* 渐入动画 */
+  .leaf-pop { animation: popInLeaf 0.8s forwards; }
+  @keyframes popInLeaf { 
+    0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(5px); } 
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } 
+  }
 
-    .music-marquee { width: 120px; text-align: center; font-size: 0.75rem; color: #2A60A7; font-weight: 600; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(4px); padding: 4px 8px; border-radius: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; pointer-events: auto; transition: 0.2s; }
-    .music-marquee:hover { background: #fff; color: #16A34A; }
+  /* 文字排版 */
+  .block-content { display: flex; align-items: center; gap: 1rem; }
+  .block-icon svg { width: 28px; height: 28px; stroke: #2A60A7; transition: 0.3s; }
+  .block-title { font-family: "Andada Pro", "LXGW Heart Serif", serif; font-size: 1.5rem; font-weight: 700; margin: 0; color: #2A60A7; letter-spacing: 0.1em; transition: 0.3s; }
+  
+  .glass-block:hover .block-title { color: #16A34A; }
+  .glass-block:hover .block-icon svg { stroke: #16A34A; transform: scale(1.1); }
 
-    @media (max-width: 768px) {
-      .top-bar { padding: 0 1rem; }
-      .nav-right a { display: none; } 
-      #floating-music-widget { bottom: 20px; right: 15px; }
-      .music-orb { width: 50px; height: 50px; }
-      .music-orb svg { width: 24px; height: 24px; }
-      .music-marquee { width: 90px; font-size: 0.65rem; }
-    }
-  </style>
-</head>
+  /* ===== 弹窗与列表 ===== */
+  .mega-modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(248, 250, 252, 0.6); backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+  .mega-modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .mega-modal-content { position: relative; width: 90vw; max-width: 1000px; height: 85vh; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 40px; box-shadow: 0 30px 80px rgba(42, 96, 167, 0.2); display: flex; flex-direction: column; padding: 3rem; overflow: hidden; transform: translateY(30px); transition: all 0.5s; }
+  .mega-modal-overlay.active .mega-modal-content { transform: translateY(0); }
+
+  .close-mega-btn { position: absolute; top: 1.5rem; right: 1.5rem; width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.05); border: none; font-size: 1.8rem; color: #64748b; cursor: pointer; transition: 0.3s; z-index: 10; }
+  .close-mega-btn:hover { background: #ef4444; color: #fff; }
+  .mega-title { font-size: 2.2rem; color: #2A60A7; font-weight: 800; margin-bottom: 2rem; text-align: center; }
+
+  .shutter-container { flex: 1; overflow-y: auto; padding-right: 1rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  .shutter-item { width: 100%; min-height: 100px; padding: 2rem; cursor: pointer; border-radius: 20px; background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(240,250,255,0.6)); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 10px 30px rgba(42, 96, 167, 0.08); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: 0.3s; }
+  .shutter-item:hover { transform: translateY(-5px); border-color: #16A34A; box-shadow: 0 15px 40px rgba(22, 163, 74, 0.15); }
+  .item-title { font-size: 1.8rem; font-weight: 800; color: #2A60A7; margin-bottom: 0.5rem; }
+  .item-subtitle { font-size: 1rem; color: #16A34A; font-weight: 600; }
+
+  .read-btn { background: #2A60A7; color: #fff; border: none; padding: 0.8rem; border-radius: 20px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
+  .read-btn:hover { background: #16A34A; }
+
+  /* ===== 音乐播放器 ===== */
+  .music-player-hidden { display: none; flex: 1; justify-content: center; align-items: center; }
+  .music-player-hidden.show { display: flex; }
+  .jukebox { width: 100%; max-width: 600px; height: 100%; max-height: 500px; background: rgba(255, 255, 255, 0.4); border-radius: 30px; display: flex; flex-direction: column; overflow: hidden; }
+  .selector-bar { padding: 1.5rem; background: rgba(255, 255, 255, 0.5); display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
+  select { width: 80%; padding: 0.8rem; font-size: 1rem; border-radius: 20px; border: 1px solid #cbd5e1; outline: none; }
+  .jukebox-visual { flex: 1; display: flex; justify-content: space-around; align-items: center; }
+  
+  /* 喇叭按钮 */
+  .speaker-horn { width: 80px; height: 80px; color: #2A60A7; cursor: pointer; border: none; background: transparent; transition: 0.3s; }
+  .speaker-horn:hover { transform: scale(1.1); color: #16A34A; }
+  .speaker-horn .horn-icon { width: 100%; height: 100%; }
+  
+  .vinyl-record { width: 120px; height: 120px; border-radius: 50%; background: repeating-radial-gradient(#f8fafc, #f8fafc 2px, #e2e8f0 3px, #f8fafc 4px); display: flex; justify-content: center; align-items: center; animation: spin 4s linear infinite; animation-play-state: paused; }
+  .vinyl-record.playing { animation-play-state: running; }
+  .vinyl-center { width: 30px; height: 30px; background: #16A34A; border-radius: 50%; }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+  
+  .jukebox-bottom { background: rgba(255, 255, 255, 0.8); padding: 1.5rem; }
+  .status-row { display: flex; justify-content: space-between; font-family: monospace; margin-bottom: 0.5rem; }
+  input[type="range"] { width: 100%; cursor: pointer; }
+
+  /* ===== 阅读器区 ===== */
+  .reader-hidden { display: none; position: absolute; inset: 0; background: #f8fafc; z-index: 20; padding: 2rem; flex-direction: column; }
+  .reader-hidden.show { display: flex; }
+  .back-to-list-btn { align-self: flex-start; background: transparent; border: 1px solid #cbd5e1; padding: 0.4rem 1.2rem; border-radius: 20px; cursor: pointer; margin-bottom: 1rem; }
+  .epub-wrapper { position: relative; width: 100%; height: 100%; background: #fff; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; }
+  #viewer { flex: 1; width: 100%; }
+  .loading-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; }
+  .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: #2A60A7; border-radius: 50%; animation: spin 1s linear infinite; }
+  .epub-controls { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 1.5rem; border-top: 1px solid #e2e8f0; }
+  .stamp-btn { width: 45px; height: 45px; border-radius: 50%; border: none; color: #fff; cursor: pointer; font-weight: bold; }
+  .stamp-btn.green { background: #16A34A; }
+  .stamp-btn.blue { background: #2A60A7; }
+
+  @media (max-width: 768px) {
+    .block-grid { gap: 1rem; }
+    .glass-block { padding: 1.2rem; }
+    .block-title { font-size: 1.2rem; }
+    .mega-modal-content { padding: 1.5rem; border-radius: 20px; width: 95vw; }
+  }
+</style>
+
 <body>
   <div id="intro-screen">
     <video id="intro-video" autoplay muted playsinline><source src="https://f005.backblazeb2.com/file/hypoaqua/start.mp4" type="video/mp4" /></video>

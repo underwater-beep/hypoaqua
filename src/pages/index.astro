@@ -193,34 +193,20 @@ import Layout from '../layouts/Layout.astro';
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     
-    // ================= 1. 全局配置与语言字典 =================
+    // ================= 1. 全局配置与语言 =================
     window.currentLang = 'zh'; 
     window.updateLanguage = () => {};
 
     const I18N = {
-      zh: { 
-        lit: { title: '文学' }, 
-        pub: { title: '出版' }, 
-        mus: { title: '音乐' }, 
-        gam: { title: '游戏' }, 
-        read: '开始阅读', chooseSong: '选择曲目：' 
-      },
-      en: { 
-        lit: { title: 'Literature' }, 
-        pub: { title: 'Published' }, 
-        mus: { title: 'Music' }, 
-        gam: { title: 'Games' }, 
-        read: 'Start Reading', chooseSong: 'Select a track:' 
-      }
+      zh: { lit: '文学', pub: '出版', mus: '音乐', gam: '游戏', read: '开始阅读', chooseSong: '选择曲目：' },
+      en: { lit: 'Literature', pub: 'Published', mus: 'Music', gam: 'Games', read: 'Start Reading', chooseSong: 'Select a track:' }
     };
 
-    // ================= 2. 主页面太极四瓣渲染 =================
+    // ================= 2. 主页玻璃长条渲染 =================
     function renderHomeCards() {
       const grid = document.getElementById('home-cards');
       const t = I18N[window.currentLang];
       
-      // 上下左右的类名
-      const shapes = ['shape-top', 'shape-right', 'shape-bottom', 'shape-left'];
       const targets = ['view-literature', 'view-published', 'view-music', 'view-games'];
       const icons = [
         `<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h6"/><path d="M8 11h8"/>`,
@@ -228,13 +214,13 @@ import Layout from '../layouts/Layout.astro';
         `<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>`,
         `<line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y2="6" width="20" height="12" rx="2"/>`
       ];
-      const titles = [t.lit.title, t.pub.title, t.mus.title, t.gam.title];
+      const titles = [t.lit, t.pub, t.mus, t.gam];
 
       grid.innerHTML = '';
       for (let i = 0; i < 4; i++) {
         const a = document.createElement('a');
         a.href = 'javascript:void(0);';
-        a.className = `glass-block ${shapes[i]}`;
+        a.className = `glass-block`;
         a.innerHTML = `
           <div class="block-content">
             <div class="block-icon">
@@ -251,6 +237,7 @@ import Layout from '../layouts/Layout.astro';
     renderHomeCards();
     window.updateLanguage = () => { renderHomeCards(); };
 
+    // 视频结束触发卡片入场
     document.addEventListener('videoEnded', () => {
       document.querySelectorAll('.glass-block').forEach((el, index) => {
         setTimeout(() => { el.classList.add('leaf-pop'); }, index * 150); 
@@ -258,7 +245,7 @@ import Layout from '../layouts/Layout.astro';
     });
 
 
-    // ================= 3. 大弹窗与详情小弹窗控制 =================
+    // ================= 3. 大弹窗控制 =================
     const megaModal = document.getElementById('mega-modal');
     const modalTitle = document.getElementById('modal-title');
     const megaListContainer = document.getElementById('mega-list-container');
@@ -277,16 +264,16 @@ import Layout from '../layouts/Layout.astro';
       const lang = window.currentLang;
 
       if (targetId === 'view-literature') {
-        modalTitle.textContent = t.lit.title;
+        modalTitle.textContent = t.lit;
         fetch(`/books_${lang}.json`).then(r => r.json()).then(data => renderList(data, true));
       } else if (targetId === 'view-published') {
-        modalTitle.textContent = t.pub.title;
+        modalTitle.textContent = t.pub;
         fetch(`/published_${lang}.json`).then(r => r.json()).then(data => renderList(data, false));
       } else if (targetId === 'view-games') {
-        modalTitle.textContent = t.gam.title;
+        modalTitle.textContent = t.gam;
         fetch(`/games_${lang}.json`).then(r => r.json()).then(data => renderList(data, false));
       } else if (targetId === 'view-music') {
-        modalTitle.textContent = t.mus.title;
+        modalTitle.textContent = t.mus;
         megaListContainer.style.display = 'none'; 
         megaMusicPlayer.classList.add('show');    
         document.getElementById('music-label').textContent = t.chooseSong;
@@ -298,19 +285,15 @@ import Layout from '../layouts/Layout.astro';
     document.getElementById('close-mega-modal').onclick = () => { megaModal.classList.remove('active'); };
     document.getElementById('back-to-list').onclick = () => { readerView.classList.remove('show'); megaListContainer.style.display = 'flex'; };
 
-    // 打开详情小弹窗
+    // 详情小弹窗
     function openDetailModal(item, isBook) {
       document.getElementById('detail-title').textContent = item.title;
       document.getElementById('detail-desc').innerHTML = item.desc || item.content || '';
-      
       const readBtn = document.getElementById('detail-read-btn');
       if (isBook) {
         readBtn.style.display = 'block';
         readBtn.textContent = I18N[window.currentLang].read;
-        readBtn.onclick = () => { 
-          detailModal.classList.remove('active'); 
-          openBook(item.title); 
-        };
+        readBtn.onclick = () => { detailModal.classList.remove('active'); openBook(item.title); };
       } else {
         readBtn.style.display = 'none';
       }
@@ -318,7 +301,6 @@ import Layout from '../layouts/Layout.astro';
     }
     document.getElementById('close-detail-modal').onclick = () => { detailModal.classList.remove('active'); };
 
-    // 渲染扁平的列表
     function renderList(dataList, isBook) {
       megaListContainer.innerHTML = '';
       dataList.forEach(item => {
@@ -330,8 +312,7 @@ import Layout from '../layouts/Layout.astro';
       });
     }
 
-
-    // ================= 4. 电子书阅读器 =================
+    // ================= 4. 电子书 =================
     let currentRendition = null;
     const loadingEl = document.getElementById('loading');
     const B2_BOOK_URL = "https://f005.backblazeb2.com/file/hypoaqua/book/";
@@ -340,7 +321,6 @@ import Layout from '../layouts/Layout.astro';
       megaListContainer.style.display = 'none';
       readerView.classList.add('show');
       loadingEl.style.display = "flex";
-
       const epubUrl = B2_BOOK_URL + encodeURIComponent(title) + ".epub";
       if (currentRendition) currentRendition.destroy();
 
@@ -357,17 +337,22 @@ import Layout from '../layouts/Layout.astro';
       }, 100);
     }
 
-
-    // ================= 5. 音乐播放器 (中英完美匹配) =================
+    // ================= 5. 音乐播放器 =================
     const B2_MUSIC_URL = "https://f005.backblazeb2.com/file/hypoaqua/music/";
     const selectEl = document.getElementById('music-select');
     const audioPlayer = document.getElementById('global-audio'); 
     const progressBar = document.getElementById('progress-bar');
     const currentTimeEl = document.getElementById('current-time');
     const totalTimeEl = document.getElementById('total-time');
+    const hornPath = document.getElementById('horn-path');
     let isDragging = false;
     let musicListCurrent = []; 
     let musicListZh = [];      
+
+    // 有声喇叭 SVG 路径
+    const iconSoundOn = "M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z";
+    // 静音喇叭 SVG 路径
+    const iconSoundOff = "M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z";
 
     function formatTime(seconds) {
       if (isNaN(seconds)) return "00:00";
@@ -390,9 +375,7 @@ import Layout from '../layouts/Layout.astro';
           opt.textContent = item.name; 
           selectEl.appendChild(opt);
         });
-      } catch (err) {
-        console.error("加载音乐列表失败", err);
-      }
+      } catch (err) { console.error(err); }
     }
 
     function playMusic(index) {
@@ -409,6 +392,7 @@ import Layout from '../layouts/Layout.astro';
 
     selectEl.addEventListener('change', (e) => playMusic(e.target.value));
     
+    // 点击喇叭切换播放/暂停，并更新图标
     document.getElementById('play-pause-btn').addEventListener('click', () => {
       if (!audioPlayer.src) { 
         if (musicListCurrent.length > 0) { selectEl.value = 0; playMusic(0); }
@@ -418,19 +402,18 @@ import Layout from '../layouts/Layout.astro';
       else audioPlayer.pause();
     });
 
+    // 监听全局播放器状态
     audioPlayer.addEventListener('play', () => { 
       const vinyl = document.getElementById('vinyl');
-      const btn = document.getElementById('play-pause-btn');
       if(vinyl) vinyl.classList.add('playing');
-      if(btn) btn.classList.add('playing');
+      hornPath.setAttribute('d', iconSoundOn); // 切换为有声
       if (window.updateMusicWidget) window.updateMusicWidget(true, document.getElementById('orb-song-name').textContent);
     });
 
     audioPlayer.addEventListener('pause', () => { 
       const vinyl = document.getElementById('vinyl');
-      const btn = document.getElementById('play-pause-btn');
       if(vinyl) vinyl.classList.remove('playing');
-      if(btn) btn.classList.remove('playing');
+      hornPath.setAttribute('d', iconSoundOff); // 切换为静音
       if (window.updateMusicWidget) window.updateMusicWidget(false, document.getElementById('orb-song-name').textContent);
     });
 
