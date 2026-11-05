@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+	<defs>
+		<!-- 主体水流的渐变：左上亮蓝，右下深海暗蓝 -->
+		<radialGradient id="waterBody" cx="35%" cy="35%" r="65%">
+			<stop offset="0%" stop-color="#a8f5d0" />
+			<!-- 顶部高光偏绿 -->
+			<stop offset="30%" stop-color="#6fc3f0" />
+			<!-- 中间水蓝 -->
+			<stop offset="80%" stop-color="#2A60A7" />
+			<!-- 深蓝 -->
+			<stop offset="100%" stop-color="#17365E" />
+			<!-- 底部暗蓝 -->
+		</radialGradient>
+
+		<!-- 边缘环境光反射渐变 -->
+		<radialGradient id="rimLight" cx="50%" cy="80%" r="50%">
+			<stop offset="60%" stop-color="rgba(255,255,255,0)" />
+			<stop offset="100%" stop-color="rgba(168,245,208,0.6)" />
+			<!-- 底部透射光 -->
+		</radialGradient>
+
+		<!-- 2D 水滴路径 -->
+		<path id="dropShape" d="M50 10 C50 10 15 50 15 75 A 35 35 0 0 0 85 75 C85 50 50 10 50 10 Z" />
+
+		<!-- 裁剪路径：用来确保高光不超出水滴范围 -->
+		<clipPath id="dropClip">
+			<use href="#dropShape" />
+		</clipPath>
+	</defs>
+
+	<!-- 1. 基础水滴形状，填充 3D 渐变 -->
+	<use href="#dropShape" fill="url(#waterBody)" />
+
+	<!-- 2. 叠加上边缘折射光 -->
+	<use href="#dropShape" fill="url(#rimLight)" />
+
+	<!-- 3. 3D 高光反光区（限制在水滴内部） -->
+	<g clip-path="url(#dropClip)">
+		<!-- 左上角大块弧形高光 -->
+		<ellipse cx="38" cy="50" rx="12" ry="22" fill="rgba(255, 255, 255, 0.4)" transform="rotate(-30 38 50)" />
+
+		<!-- 顶部极小的高光亮点（模拟镜面反射） -->
+		<circle cx="35" cy="35" r="3" fill="#ffffff" />
+		<circle cx="32" cy="42" r="1.5" fill="rgba(255, 255, 255, 0.8)" />
+
+		<!-- 右下角底部的微弱反光（环境光漫反射） -->
+		<ellipse cx="65" cy="80" rx="10" ry="6" fill="rgba(111, 195, 240, 0.4)" transform="rotate(20 65 80)" />
+	</g>
+</svg>

@@ -1,0 +1,468 @@
+---
+// src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Hypoaqua | 个人作品集">
+  <main class="app-container">
+    <!-- 1. 主页视图 (太极四瓣) -->
+    <section class="view-section active" id="view-home">
+      <div class="block-grid" id="home-cards"></div>
+    </section>
+  </main>
+
+  <!-- 2. 统一的大弹窗 -->
+  <div id="mega-modal" class="mega-modal-overlay">
+    <div class="mega-modal-content">
+      <button id="close-mega-modal" class="close-mega-btn">×</button>
+      
+      <h2 id="modal-title" class="mega-title"></h2>
+      
+      <!-- 列表区 -->
+      <div id="mega-list-container" class="shutter-container"></div>
+      
+      <!-- 播放器区 (只需 UI，音频由 Layout 提供) -->
+      <div id="mega-music-player" class="music-player-hidden">
+        <div class="jukebox">
+          <div class="selector-bar">
+            <label for="music-select" id="music-label">选择曲目：</label>
+            <select id="music-select"></select>
+          </div>
+          <div class="jukebox-visual">
+            <!-- 这个按钮现在控制的是全局播放器 -->
+            <button id="play-pause-btn" class="speaker-horn">
+              <svg viewBox="0 0 100 100" class="horn-icon"><path d="M20,40 L40,40 L70,15 L70,85 L40,60 L20,60 Z" fill="currentColor" /><path d="M 75 30 Q 85 50 75 70" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M 82 20 Q 95 50 82 80" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
+            </button>
+            <div class="vinyl-record" id="vinyl"><div class="vinyl-center"></div></div>
+          </div>
+          <div class="jukebox-bottom">
+            <div class="status-row"><span id="current-time">00:00</span><span id="total-time">00:00</span></div>
+            <input type="range" id="progress-bar" value="0" min="0" max="100" step="0.1">
+          </div>
+        </div>
+      </div>
+
+      <!-- 阅读器区 -->
+      <div id="reader-view" class="reader-hidden">
+        <button id="back-to-list" class="back-to-list-btn">← 返回列表</button>
+        <div class="epub-wrapper">
+          <div id="loading" class="loading-overlay"><div class="spinner"></div><p>Loading...</p></div>
+          <div id="viewer"></div>
+          <div class="epub-controls">
+            <button id="prev-btn" class="stamp-btn green">返</button>
+            <div class="right-controls">
+              <button id="next-btn" class="stamp-btn blue">翻</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</Layout>
+
+<style is:global>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  .app-container { position: absolute; top: 60px; left: 0; width: 100vw; height: calc(100vh - 60px); overflow: hidden; }
+  .view-section { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 10; }
+
+  /* 太极图四板块 */
+  .block-grid { position: relative; width: 400px; height: 400px; display: flex; justify-content: center; align-items: center; margin: 0 auto; border-radius: 50%; overflow: hidden; box-shadow: 0 0 50px rgba(42, 96, 167, 0.15); }
+  @media (max-width: 768px) { .block-grid { width: 300px; height: 300px; } }
+
+  .glass-block { position: absolute; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; display: flex; justify-content: center; align-items: center; cursor: pointer; text-decoration: none; pointer-events: auto; }
+  .leaf-pop { animation: popInLeaf 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  @keyframes popInLeaf { 0% { opacity: 0; transform: scale(0.8) rotate(-10deg); } 100% { opacity: 1; transform: scale(1) rotate(0deg); } }
+
+  .shape-tl { clip-path: polygon(0 0, 100% 0, 50% 50%, 0 100%); }
+  .shape-tr { clip-path: polygon(100% 0, 100% 100%, 50% 50%); }
+  .shape-br { clip-path: polygon(100% 100%, 0 100%, 50% 50%); }
+  .shape-bl { clip-path: polygon(0 100%, 0 0, 50% 50%); }
+
+  .block-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; text-align: center; color: #1e293b; width: 50%; transition: transform 0.3s; }
+  .shape-tl .block-content { transform: translate(-40%, -40%); }
+  .shape-tr .block-content { transform: translate(40%, -40%); }
+  .shape-br .block-content { transform: translate(40%, 40%); }
+  .shape-bl .block-content { transform: translate(-40%, 40%); }
+
+  .block-icon svg { width: 28px; height: 28px; stroke: #2A60A7; }
+  .block-title { font-family: "Andada Pro", "LXGW Heart Serif", serif; font-size: 1.2rem; font-weight: 700; margin: 0.3rem 0; color: #2A60A7; }
+  .block-desc { font-size: 0.75rem; color: #64748b; }
+
+  .glass-block:hover { background: rgba(255, 255, 255, 0.35); box-shadow: inset 0 0 40px rgba(22, 163, 74, 0.2), inset 0 0 20px rgba(42, 96, 167, 0.2); z-index: 10; }
+  .glass-block:hover .block-title { color: #16A34A; }
+
+  /* 磨砂弹窗 */
+  .mega-modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(248, 250, 252, 0.6); backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+  .mega-modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .mega-modal-content { position: relative; width: 90vw; max-width: 1000px; height: 85vh; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 40px; box-shadow: 0 30px 80px rgba(42, 96, 167, 0.2); display: flex; flex-direction: column; padding: 3rem; overflow: hidden; transform: translateY(30px) scale(0.95); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+  .mega-modal-overlay.active .mega-modal-content { transform: translateY(0) scale(1); }
+
+  .close-mega-btn { position: absolute; top: 1.5rem; right: 1.5rem; width: 45px; height: 45px; border-radius: 50%; background: rgba(0,0,0,0.05); border: none; font-size: 1.8rem; color: #64748b; cursor: pointer; transition: 0.3s; z-index: 10; display: flex; justify-content: center; align-items: center; }
+  .close-mega-btn:hover { background: #ef4444; color: #fff; transform: rotate(90deg); }
+  .mega-title { font-size: 2.2rem; color: #2A60A7; font-weight: 800; margin-bottom: 2rem; letter-spacing: 0.1em; text-align: center; }
+
+  /* 弹窗内部列表区 */
+  .shutter-container { flex: 1; overflow-y: auto; padding-right: 1rem; perspective: 1000px; display: flex; flex-direction: column; gap: 1.5rem; scrollbar-width: none; }
+  .shutter-container::-webkit-scrollbar { display: none; }
+  .shutter-item { width: 100%; height: 120px; position: relative; cursor: pointer; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-radius: 20px; opacity: 1; transform: translateY(0) scale(1); }
+  .shutter-item.flipped { transform: rotateY(180deg); }
+
+  /* 蓝绿光条目 */
+  .shutter-front, .shutter-back { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 20px; padding: 2rem; background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,250,255,0.6) 100%); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 10px 30px rgba(42, 96, 167, 0.08); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background-image: radial-gradient(circle at 10% 10%, rgba(42, 96, 167, 0.15), transparent 40%), radial-gradient(circle at 90% 90%, rgba(22, 163, 74, 0.15), transparent 40%); }
+  .shutter-front .item-title { font-size: 2rem; font-weight: 800; color: #2A60A7; margin-bottom: 0.5rem; }
+  .shutter-front .item-subtitle { font-size: 1rem; color: #16A34A; font-weight: 600; }
+  .shutter-back { transform: rotateY(180deg); justify-content: flex-start; align-items: flex-start; text-align: left; padding: 2rem; }
+  .shutter-back .back-title { font-size: 1.4rem; color: #2A60A7; margin-bottom: 1rem; border-bottom: 1px solid rgba(42, 96, 167, 0.2); padding-bottom: 0.5rem; width: 100%; }
+  .shutter-back .back-content { font-size: 0.95rem; color: #475569; line-height: 1.8; overflow-y: auto; width: 100%; }
+  .shutter-back .back-content::-webkit-scrollbar { width: 4px; }
+  .shutter-back .back-content::-webkit-scrollbar-thumb { background: rgba(42, 96, 167, 0.3); border-radius: 2px; }
+  .read-btn { background: #2A60A7; color: #fff; border: none; padding: 0.5rem 1.5rem; border-radius: 30px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 1rem; }
+  .read-btn:hover { background: #16A34A; transform: scale(1.05); }
+
+  /* 音乐播放器 */
+  .music-player-hidden { display: none; flex: 1; justify-content: center; align-items: center; }
+  .music-player-hidden.show { display: flex; }
+  .jukebox { width: 100%; max-width: 600px; height: 100%; max-height: 500px; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 30px; display: flex; flex-direction: column; overflow: hidden; }
+  .selector-bar { padding: 1.5rem; background: rgba(255, 255, 255, 0.5); display: flex; flex-direction: column; align-items: center; gap: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.5); }
+  select { width: 80%; max-width: 300px; padding: 0.8rem; font-size: 1rem; color: #2A60A7; background: #fff; border: 1px solid rgba(42, 96, 167, 0.2); border-radius: 20px; outline: none; text-align: center; appearance: none; cursor: pointer; font-weight: 600; }
+  .jukebox-visual { flex: 1; display: flex; justify-content: space-around; align-items: center; padding: 2rem; }
+  .speaker-horn { width: 120px; height: 120px; color: #94a3b8; background: transparent; border: none; cursor: pointer; transition: all 0.3s; }
+  .speaker-horn:hover { color: #2A60A7; transform: scale(1.1); }
+  .speaker-horn.playing { color: #16A34A; filter: drop-shadow(0 0 20px rgba(22, 163, 74, 0.4)); }
+  .vinyl-record { width: 140px; height: 140px; border-radius: 50%; background: repeating-radial-gradient(#f8fafc, #f8fafc 2px, #e2e8f0 3px, #f8fafc 4px); box-shadow: 0 10px 30px rgba(42, 96, 167, 0.15); display: flex; justify-content: center; align-items: center; animation: spin 4s linear infinite; animation-play-state: paused; }
+  .vinyl-record.playing { animation-play-state: running; }
+  .vinyl-center { width: 40px; height: 40px; background: #16A34A; border-radius: 50%; border: 4px solid #ffffff; }
+  .jukebox-bottom { background: rgba(255, 255, 255, 0.8); padding: 1.5rem 2rem; display: flex; flex-direction: column; gap: 1rem; }
+  .status-row { display: flex; justify-content: space-between; font-family: monospace; font-size: 0.9rem; color: #2A60A7; font-weight: 600; }
+  input[type="range"] { -webkit-appearance: none; width: 100%; height: 8px; background: rgba(42, 96, 167, 0.1); border-radius: 4px; outline: none; cursor: pointer; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #16A34A; box-shadow: 0 0 10px rgba(22, 163, 74, 0.4); }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+
+  /* 电子书阅读区 */
+  .reader-hidden { display: none; position: absolute; inset: 0; background: #f8fafc; z-index: 20; padding: 2rem; flex-direction: column; }
+  .reader-hidden.show { display: flex; }
+  .back-to-list-btn { align-self: flex-start; background: transparent; border: 1px solid rgba(42, 96, 167, 0.3); color: #2A60A7; padding: 0.4rem 1.2rem; border-radius: 20px; margin-bottom: 1rem; cursor: pointer; }
+  .epub-wrapper { position: relative; width: 100%; height: 100%; background: #ffffff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; }
+  #viewer { flex: 1; width: 100%; height: 100%; position: relative; z-index: 1; overflow: hidden; }
+  .loading-overlay { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2A60A7; font-weight: bold; }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(42, 96, 167, 0.1); border-top-color: #2A60A7; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; }
+  .epub-controls { height: 60px; background: rgba(255, 255, 255, 0.9); border-top: 1px solid rgba(42, 96, 167, 0.1); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; color: #2A60A7; z-index: 2; }
+  .right-controls { display: flex; align-items: center; gap: 1rem; }
+  .stamp-btn { width: 45px; height: 45px; border-radius: 50%; border: none; color: #fff; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+  .stamp-btn.green { background: #16A34A; }
+  .stamp-btn.blue { background: #2A60A7; }
+  .stamp-btn:hover { transform: scale(1.1); }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    
+    // ================= 1. 全局配置与语言字典 =================
+    window.currentLang = 'zh'; 
+    window.updateLanguage = () => {};
+
+    const I18N = {
+      zh: { 
+        lit: { title: '文学', desc: '小说 · 散文 · 诗歌' }, 
+        pub: { title: '出版', desc: '已出版作品' }, 
+        mus: { title: '音乐', desc: 'Suno 音乐集' }, 
+        gam: { title: '游戏', desc: 'AVG · 互动叙事' }, 
+        read: '读', back: '← 返回列表', chooseSong: '选择曲目：' 
+      },
+      en: { 
+        lit: { title: 'Literature', desc: 'Novels · Prose · Poetry' }, 
+        pub: { title: 'Published', desc: 'Published Works' }, 
+        mus: { title: 'Music', desc: 'Suno Collection' }, 
+        gam: { title: 'Games', desc: 'AVG · Narrative' }, 
+        read: 'Read', back: '← Back to List', chooseSong: 'Select a track:' 
+      }
+    };
+
+    // ================= 2. 主页面太极四瓣渲染 =================
+    function renderHomeCards() {
+      const grid = document.getElementById('home-cards');
+      const t = I18N[window.currentLang];
+      
+      const shapes = ['shape-tl', 'shape-tr', 'shape-br', 'shape-bl'];
+      const targets = ['view-literature', 'view-published', 'view-music', 'view-games'];
+      const icons = [
+        `<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h6"/><path d="M8 11h8"/>`,
+        `<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="m9 9 2 2 4-4"/>`,
+        `<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>`,
+        `<line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y2="6" width="20" height="12" rx="2"/>`
+      ];
+      const titles = [t.lit.title, t.pub.title, t.mus.title, t.gam.title];
+      const descs = [t.lit.desc, t.pub.desc, t.mus.desc, t.gam.desc];
+
+      grid.innerHTML = '';
+      for (let i = 0; i < 4; i++) {
+        const a = document.createElement('a');
+        a.href = 'javascript:void(0);';
+        a.className = `glass-block ${shapes[i]}`;
+        a.setAttribute('data-target', targets[i]);
+        a.innerHTML = `
+          <div class="block-content">
+            <div class="block-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${icons[i]}</svg>
+            </div>
+            <h2 class="block-title">${titles[i]}</h2>
+            <p class="block-desc">${descs[i]}</p>
+          </div>
+        `;
+        
+        a.addEventListener('click', () => {
+          openMegaModal(targets[i]); 
+        });
+        grid.appendChild(a);
+      }
+    }
+
+    // 初始化与语言联动
+    renderHomeCards();
+    window.updateLanguage = () => { renderHomeCards(); };
+
+    // 视频结束触发卡片入场
+    document.addEventListener('videoEnded', () => {
+      document.querySelectorAll('.glass-block').forEach((el, index) => {
+        setTimeout(() => { el.classList.add('leaf-pop'); }, index * 150); 
+      });
+    });
+
+
+    // ================= 3. 弹窗与内容切换逻辑 =================
+    const megaModal = document.getElementById('mega-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const megaListContainer = document.getElementById('mega-list-container');
+    const megaMusicPlayer = document.getElementById('mega-music-player');
+    const readerView = document.getElementById('reader-view');
+    const closeMegaBtn = document.getElementById('close-mega-modal');
+    const backToListBtn = document.getElementById('back-to-list');
+
+    function openMegaModal(targetId) {
+      megaModal.classList.add('active');
+      megaListContainer.innerHTML = '';
+      megaListContainer.style.display = 'flex';
+      megaMusicPlayer.classList.remove('show');
+      readerView.classList.remove('show');
+      
+      const t = I18N[window.currentLang];
+      const lang = window.currentLang;
+
+      if (targetId === 'view-literature') {
+        modalTitle.textContent = t.lit.title;
+        fetch(`/books_${lang}.json`).then(r => r.json()).then(data => renderShutterList(megaListContainer, data, true));
+      } 
+      else if (targetId === 'view-published') {
+        modalTitle.textContent = t.pub.title;
+        fetch(`/published_${lang}.json`).then(r => r.json()).then(data => renderShutterList(megaListContainer, data, false));
+      } 
+      else if (targetId === 'view-games') {
+        modalTitle.textContent = t.gam.title;
+        fetch(`/games_${lang}.json`).then(r => r.json()).then(data => renderShutterList(megaListContainer, data, false));
+      } 
+      else if (targetId === 'view-music') {
+        modalTitle.textContent = t.mus.title;
+        megaListContainer.style.display = 'none'; 
+        megaMusicPlayer.classList.add('show');    
+        document.getElementById('music-label').textContent = t.chooseSong;
+        initMusicSelect(lang); 
+      }
+    }
+
+    // 暴露给 Layout 里的悬浮太极球使用
+    window.openMusicModal = () => {
+      openMegaModal('view-music');
+    };
+
+    closeMegaBtn.onclick = () => { 
+      megaModal.classList.remove('active'); 
+      // 注意：关闭弹窗不暂停音乐，让悬浮球继续播放
+    };
+    
+    backToListBtn.onclick = () => {
+      readerView.classList.remove('show');
+      megaListContainer.style.display = 'flex';
+    };
+
+
+    // ================= 4. 通用：3D 百叶窗渲染引擎 =================
+    function renderShutterList(container, dataList, isBook) {
+      container.innerHTML = '';
+      const lang = window.currentLang;
+      
+      dataList.forEach(item => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'shutter-item';
+        const description = item.desc || item.content || '';
+        const epubTitle = item.title; 
+
+        wrapper.innerHTML = `
+          <div class="shutter-front">
+            <div class="item-title">${item.title}</div>
+            <div class="item-subtitle">${item.subtitle || item.type || ''}</div>
+          </div>
+          <div class="shutter-back">
+            <div class="back-title">${item.title}</div>
+            <div class="back-content">${description}</div>
+            ${isBook ? `<button class="read-btn" onclick="openBookReader('${epubTitle}', event)">${I18N[lang].read}</button>` : ''}
+          </div>
+        `;
+
+        wrapper.addEventListener('click', (e) => {
+          if (e.target.tagName === 'BUTTON') return; 
+          wrapper.classList.toggle('flipped');
+        });
+        container.appendChild(wrapper);
+      });
+    }
+
+
+    // ================= 5. 电子书阅读器 =================
+    let currentRendition = null;
+    const loadingEl = document.getElementById('loading');
+    const B2_BOOK_URL = "https://f005.backblazeb2.com/file/hypoaqua/book/";
+
+    window.openBookReader = (title, event) => {
+      event.stopPropagation();
+      megaListContainer.style.display = 'none';
+      readerView.classList.add('show');
+      loadingEl.style.display = "flex";
+
+      const epubUrl = B2_BOOK_URL + encodeURIComponent(title) + ".epub";
+      if (currentRendition) currentRendition.destroy();
+
+      setTimeout(() => {
+        const bookObj = ePub(epubUrl);
+        currentRendition = bookObj.renderTo("viewer", { width: "100%", height: "100%", spread: "always", flow: "paginated" });
+        currentRendition.themes.default({
+          'body': { 'color': '#1e293b !important', 'background': 'transparent !important', 'font-family': '"Andada Pro", "LXGW Heart Serif", serif !important', 'font-size': '1.1rem !important' },
+          'p': { 'line-height': '2 !important', 'margin-bottom': '1.2em !important', 'text-indent': '2em !important' }
+        });
+        currentRendition.display().then(() => loadingEl.style.display = "none").catch(() => loadingEl.innerHTML = "加载失败，请检查文件名或CORS");
+        document.getElementById("prev-btn").onclick = () => currentRendition.prev();
+        document.getElementById("next-btn").onclick = () => currentRendition.next();
+      }, 100);
+    };
+
+
+    // ================= 6. 音乐播放器 (完美中英匹配 + 全局悬浮控制) =================
+    const B2_MUSIC_URL = "https://f005.backblazeb2.com/file/hypoaqua/music/";
+    const selectEl = document.getElementById('music-select');
+    
+    // 获取全局音频标签（在 Layout 里）
+    const audioPlayer = document.getElementById('global-audio'); 
+    const progressBar = document.getElementById('progress-bar');
+    const currentTimeEl = document.getElementById('current-time');
+    const totalTimeEl = document.getElementById('total-time');
+    let isDragging = false;
+    
+    let musicListCurrent = []; 
+    let musicListZh = [];      
+
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return "00:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    async function initMusicSelect(lang) {
+      try {
+        const resZh = await fetch('/music_zh.json');
+        musicListZh = await resZh.json();
+
+        const resCur = await fetch(`/music_${lang}.json`);
+        musicListCurrent = await resCur.json();
+
+        selectEl.innerHTML = '<option value="">---</option>';
+        musicListCurrent.forEach((item, index) => {
+          const opt = document.createElement('option');
+          opt.value = index; 
+          opt.textContent = item.name; 
+          selectEl.appendChild(opt);
+        });
+      } catch (err) {
+        console.error("加载音乐列表失败", err);
+      }
+    }
+
+    function playMusic(index) {
+      if (index === "" || !musicListZh[index]) return;
+      
+      // 用中文去匹配 B2 的文件名
+      const realFileName = musicListZh[index].name; 
+      // 用当前语言的列表显示歌名
+      const displayName = musicListCurrent[index].name;
+      
+      // 使用全局的 audio 播放器
+      audioPlayer.src = B2_MUSIC_URL + encodeURIComponent(realFileName) + '.mp3';
+      audioPlayer.play().catch(e => console.log(e));
+      progressBar.value = 0; currentTimeEl.textContent = "00:00";
+      
+      // 通知 Layout 浮现小太极球，并显示歌名、播放图标
+      if (window.updateMusicWidget) window.updateMusicWidget(true, displayName);
+    }
+
+    selectEl.addEventListener('change', (e) => playMusic(e.target.value));
+    
+    // 同步弹窗内的喇叭图章
+    document.getElementById('play-pause-btn').addEventListener('click', () => {
+      if (!audioPlayer.src) { 
+        if (musicListCurrent.length > 0) { selectEl.value = 0; playMusic(0); }
+        return; 
+      }
+      if (audioPlayer.paused) audioPlayer.play();
+      else audioPlayer.pause();
+    });
+
+    // 监听全局播放器的状态，同步进度条、唱片旋转和太极球图标
+    audioPlayer.addEventListener('play', () => { 
+      const vinyl = document.getElementById('vinyl');
+      const btn = document.getElementById('play-pause-btn');
+      if(vinyl) vinyl.classList.add('playing');
+      if(btn) btn.classList.add('playing');
+      
+      const songName = document.getElementById('orb-song-name').textContent;
+      if (window.updateMusicWidget) window.updateMusicWidget(true, songName);
+    });
+
+    audioPlayer.addEventListener('pause', () => { 
+      const vinyl = document.getElementById('vinyl');
+      const btn = document.getElementById('play-pause-btn');
+      if(vinyl) vinyl.classList.remove('playing');
+      if(btn) btn.classList.remove('playing');
+      
+      const songName = document.getElementById('orb-song-name').textContent;
+      if (window.updateMusicWidget) window.updateMusicWidget(false, songName);
+    });
+
+    audioPlayer.addEventListener('loadedmetadata', () => {
+      totalTimeEl.textContent = formatTime(audioPlayer.duration);
+      progressBar.max = Math.floor(audioPlayer.duration);
+    });
+    
+    audioPlayer.addEventListener('timeupdate', () => {
+      if (!isDragging) {
+        progressBar.value = Math.floor(audioPlayer.currentTime);
+        currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+      }
+    });
+    
+    progressBar.addEventListener('mousedown', () => isDragging = true);
+    progressBar.addEventListener('touchstart', () => isDragging = true);
+    progressBar.addEventListener('input', (e) => currentTimeEl.textContent = formatTime(e.target.value));
+    progressBar.addEventListener('change', (e) => { audioPlayer.currentTime = e.target.value; isDragging = false; });
+    
+    audioPlayer.addEventListener('ended', () => {
+      const currentIndex = parseInt(selectEl.value);
+      if (isNaN(currentIndex) || musicListCurrent.length === 0) return;
+      const nextIndex = (currentIndex + 1) % musicListCurrent.length;
+      selectEl.value = nextIndex; 
+      playMusic(nextIndex);
+    });
+
+  });
+</script>
